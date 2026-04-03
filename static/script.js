@@ -64,6 +64,9 @@ function showPage(name) {
   if (name === 'theme') {
     const isOpen = themeDrawer.style.display === 'block';
     themeDrawer.style.display = isOpen ? 'none' : 'block';
+    // Keep analyze page visible behind the drawer
+    analyzePage.style.display = 'block';
+    historyPage.style.display = 'none';
   } else {
     themeDrawer.style.display = 'none';
   }
@@ -73,15 +76,22 @@ function showPage(name) {
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', function(e) {
     e.preventDefault();
+    const page = this.dataset.page;
+
+    // For theme, toggle drawer without changing active state of other items
+    if (page === 'theme') {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+      showPage('theme');
+      return;
+    }
+
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     this.classList.add('active');
-    const page = this.dataset.page;
 
     if (page === 'history') {
       showPage('history');
       renderHistory();
-    } else if (page === 'theme') {
-      showPage('theme');
     } else {
       showPage('analyze');
     }
@@ -91,7 +101,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // ── Loader ──────────────────────────────────────────────────────────────────
 const steps = [
   'Reading file contents…',
-  'Extracting text with OCR…',
+  'Extracting text…',
   'AI analyzing document structure…',
   'Identifying entities & sentiment…',
   'Generating insights…'
@@ -191,10 +201,10 @@ function showResults(data) {
     grid.appendChild(tags);
   } else if (typeof entities === 'object') {
     const sections = [
-      { key:'names',         label:'👤 People',       cls:'person'  },
-      { key:'organizations', label:'🏢 Organizations', cls:'org'     },
-      { key:'dates',         label:'📅 Dates',         cls:'date'    },
-      { key:'amounts',       label:'💰 Amounts',       cls:'amount'  }
+      { key:'names',         label:'👤 People',        cls:'person'  },
+      { key:'organizations', label:'🏢 Organizations',  cls:'org'     },
+      { key:'dates',         label:'📅 Dates',          cls:'date'    },
+      { key:'amounts',       label:'💰 Amounts',        cls:'amount'  }
     ];
     let anyFound = false;
     sections.forEach(sec => {
@@ -253,9 +263,6 @@ function detectEntityType(entity) {
 function showError(msg) {
   errorText.textContent = msg;
   errorBox.style.display = 'flex';
-  errorBox.style.background   = 'rgba(248,113,113,0.08)';
-  errorBox.style.borderColor  = 'rgba(248,113,113,0.2)';
-  errorBox.style.color        = 'var(--red)';
 }
 function hideError() { errorBox.style.display = 'none'; }
 
@@ -282,7 +289,6 @@ function saveToHistory(data, filename) {
     data
   };
   history.unshift(entry);
-  // Keep only last 20
   const trimmed = history.slice(0, 20);
   localStorage.setItem('doc-analyzer-history', JSON.stringify(trimmed));
 }
@@ -304,24 +310,20 @@ function renderHistory() {
   const empty   = document.getElementById('historyEmpty');
   const history = getHistory();
 
-  // Remove old items (keep empty placeholder in DOM)
   list.querySelectorAll('.history-item').forEach(el => el.remove());
 
-  if (!history.length) {
-    empty.style.display = 'block';
-    return;
-  }
+  if (!history.length) { empty.style.display = 'block'; return; }
   empty.style.display = 'none';
 
   const sentColors = {
-    positive: { bg:'rgba(52,211,153,0.1)', color:'#34d399', border:'rgba(52,211,153,0.2)' },
+    positive: { bg:'rgba(52,211,153,0.1)',  color:'#34d399', border:'rgba(52,211,153,0.2)' },
     negative: { bg:'rgba(248,113,113,0.1)', color:'#f87171', border:'rgba(248,113,113,0.2)' },
-    neutral:  { bg:'var(--bg4)', color:'var(--text2)', border:'var(--border)' }
+    neutral:  { bg:'var(--bg4)',            color:'var(--text2)', border:'var(--border)' }
   };
 
   history.forEach(entry => {
-    const sc = sentColors[entry.sentiment] || sentColors.neutral;
-    const ext = getExt(entry.filename);
+    const sc   = sentColors[entry.sentiment] || sentColors.neutral;
+    const ext  = getExt(entry.filename);
     const icon = fileIcons[ext] || '📄';
 
     const item = document.createElement('div');
@@ -344,11 +346,9 @@ function renderHistory() {
     `;
 
     item.querySelector('.history-view-btn').addEventListener('click', () => {
-      // Switch to analyze page and re-display that result
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       document.querySelector('[data-page="analyze"]').classList.add('active');
       showPage('analyze');
-      // Fake the filename for display
       selectedFile = { name: entry.filename };
       showResults(entry.data);
     });
@@ -358,42 +358,12 @@ function renderHistory() {
 }
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
-const themes = {
-  dark: {
-    '--bg':'#080b12','--bg2':'#0d1120','--bg3':'#131929','--bg4':'#1a2235',
-    '--border':'rgba(255,255,255,0.07)','--border2':'rgba(255,255,255,0.12)',
-    '--text':'#eef0f8','--text2':'#7a84a0','--text3':'#3d4560',
-    '--blue':'#5b9cf6','--blue2':'#3b7de8','--purple':'#a78bfa',
-    '--green':'#34d399','--orange':'#fb923c','--red':'#f87171',
-    '--sidebar-bg':'rgba(13,17,32,0.97)'
-  },
-  light: {
-    '--bg':'#f0f4fd','--bg2':'#ffffff','--bg3':'#f4f6fb','--bg4':'#eaedf5',
-    '--border':'rgba(0,0,0,0.08)','--border2':'rgba(0,0,0,0.15)',
-    '--text':'#0f1324','--text2':'#4a5270','--text3':'#9aa0b8',
-    '--blue':'#2563eb','--blue2':'#1d4ed8','--purple':'#7c3aed',
-    '--green':'#059669','--orange':'#d97706','--red':'#dc2626',
-    '--sidebar-bg':'rgba(255,255,255,0.98)'
-  },
-  midnight: {
-    '--bg':'#05080f','--bg2':'#080d1a','--bg3':'#0d1525','--bg4':'#131e30',
-    '--border':'rgba(255,255,255,0.06)','--border2':'rgba(255,255,255,0.1)',
-    '--text':'#c8d8f0','--text2':'#5a70a0','--text3':'#2e3d58',
-    '--blue':'#38bdf8','--blue2':'#0ea5e9','--purple':'#a78bfa',
-    '--green':'#4ade80','--orange':'#f59e0b','--red':'#fb7185',
-    '--sidebar-bg':'rgba(5,8,15,0.98)'
-  }
-};
-
 let currentTheme = localStorage.getItem('doc-analyzer-theme') || 'dark';
 applyTheme(currentTheme);
 
 function applyTheme(name) {
-  const t = themes[name]; if (!t) return;
-  // Apply to BOTH html element and body so entire page + sidebar changes
-  const root = document.documentElement;
-  Object.entries(t).forEach(([k,v]) => root.style.setProperty(k, v));
-  root.setAttribute('data-theme', name);
+  // Set data-theme on <html> — CSS variables in style.css handle everything
+  document.documentElement.setAttribute('data-theme', name);
   currentTheme = name;
   localStorage.setItem('doc-analyzer-theme', name);
   updateThemeUI();
@@ -404,7 +374,7 @@ function updateThemeUI() {
     const isActive = btn.dataset.theme === currentTheme;
     btn.classList.toggle('active-theme', isActive);
     const tag = btn.querySelector('.theme-active-tag');
-    if (tag) tag.textContent = isActive ? 'Active' : '';
+    if (tag) tag.textContent = isActive ? '✓ Active' : '';
   });
 }
 
@@ -412,72 +382,110 @@ document.querySelectorAll('.theme-opt').forEach(btn => {
   btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
 });
 
-// ── Custom Cursor — faster tracking (0.25 lerp instead of 0.1) ────────────────
+// ── Custom Cursor — smooth fast tracking ─────────────────────────────────────
 const cursorMain = document.getElementById('cursor-main');
 const canvas     = document.getElementById('cursor-trail');
 const ctx        = canvas.getContext('2d');
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-window.addEventListener('resize', () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 let mx = window.innerWidth/2, my = window.innerHeight/2;
 let cx = mx, cy = my;
+// Velocity for extra smoothness
+let vx = 0, vy = 0;
 
 const particles = [];
+
 class Particle {
   constructor(x, y) {
-    this.x=x; this.y=y;
-    this.size=Math.random()*2.5+1.5; this.life=1;
-    this.decay=Math.random()*0.035+0.025;
-    this.vx=(Math.random()-0.5)*1; this.vy=(Math.random()-0.5)*1;
-    const cols=['--blue','--purple','--green'];
-    this.color=getComputedStyle(document.documentElement).getPropertyValue(cols[Math.floor(Math.random()*cols.length)]).trim();
+    this.x = x; this.y = y;
+    this.size  = Math.random() * 2.5 + 1.2;
+    this.life  = 1;
+    this.decay = Math.random() * 0.04 + 0.025;
+    this.vx    = (Math.random() - 0.5) * 0.8;
+    this.vy    = (Math.random() - 0.5) * 0.8;
+    const cols = ['--blue', '--purple', '--green'];
+    this.color = getComputedStyle(document.documentElement)
+      .getPropertyValue(cols[Math.floor(Math.random() * cols.length)]).trim();
   }
-  update() { this.x+=this.vx; this.y+=this.vy; this.life-=this.decay; this.size*=0.96; }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    this.life  -= this.decay;
+    this.size  *= 0.97;
+  }
   draw() {
-    ctx.save(); ctx.globalAlpha=this.life*0.6; ctx.fillStyle=this.color;
-    ctx.shadowColor=this.color; ctx.shadowBlur=8;
-    ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.save();
+    ctx.globalAlpha  = this.life * 0.55;
+    ctx.fillStyle    = this.color;
+    ctx.shadowColor  = this.color;
+    ctx.shadowBlur   = 6;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.max(this.size, 0), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 }
 
-document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
 
+function getCSSColor(v) {
+  return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+}
 function setCursorColor(v) {
-  const c = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const c = getCSSColor(v);
   document.getElementById('cur-dot')?.setAttribute('fill', c);
   document.getElementById('cur-ring')?.setAttribute('stroke', c);
 }
 
 function animateCursor() {
-  // 0.25 = faster cursor (was 0.1)
-  cx += (mx-cx)*0.25;
-  cy += (my-cy)*0.25;
-  cursorMain.style.left=cx+'px'; cursorMain.style.top=cy+'px';
+  // Spring-based smooth tracking: lerp = 0.28 (fast but smooth)
+  const LERP = 0.28;
+  cx += (mx - cx) * LERP;
+  cy += (my - cy) * LERP;
+
+  cursorMain.style.left = cx + 'px';
+  cursorMain.style.top  = cy + 'px';
   setCursorColor('--blue');
-  if (Math.random()>0.55) particles.push(new Particle(cx,cy));
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  for (let i=particles.length-1;i>=0;i--) {
-    particles[i].update(); particles[i].draw();
-    if (particles[i].life<=0) particles.splice(i,1);
+
+  // Spawn particles on movement
+  const dist = Math.hypot(mx - cx, my - cy);
+  if (dist > 2 && Math.random() > 0.45) {
+    particles.push(new Particle(cx, cy));
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    particles[i].draw();
+    if (particles[i].life <= 0) particles.splice(i, 1);
   }
   requestAnimationFrame(animateCursor);
 }
 animateCursor();
 
+// Hover & click effects
 document.querySelectorAll('a, button, label, .nav-item, .dz-cta, .analyze-btn, .reset-btn, .theme-opt, .history-view-btn').forEach(el => {
-  el.addEventListener('mouseenter', () => { cursorMain.classList.add('hovering'); setCursorColor('--purple'); });
+  el.addEventListener('mouseenter', () => { cursorMain.classList.add('hovering');    setCursorColor('--purple'); });
   el.addEventListener('mouseleave', () => { cursorMain.classList.remove('hovering'); setCursorColor('--blue'); });
 });
 
 document.addEventListener('mousedown', () => {
   cursorMain.classList.add('clicking');
-  for (let i=0;i<10;i++) {
-    const p=new Particle(cx,cy); p.vx=(Math.random()-0.5)*8; p.vy=(Math.random()-0.5)*8;
-    p.size=Math.random()*4+2; p.decay=0.05;
-    p.color=getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
+  for (let i = 0; i < 12; i++) {
+    const p = new Particle(cx, cy);
+    p.vx    = (Math.random() - 0.5) * 9;
+    p.vy    = (Math.random() - 0.5) * 9;
+    p.size  = Math.random() * 4 + 2;
+    p.decay = 0.05;
+    p.color = getCSSColor('--green');
     particles.push(p);
   }
 });
 document.addEventListener('mouseup',    () => cursorMain.classList.remove('clicking'));
-document.addEventListener('mouseleave', () => cursorMain.style.opacity='0');
-document.addEventListener('mouseenter', () => cursorMain.style.opacity='1');
+document.addEventListener('mouseleave', () => { cursorMain.style.opacity = '0'; });
+document.addEventListener('mouseenter', () => { cursorMain.style.opacity = '1'; });
