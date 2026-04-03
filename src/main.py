@@ -108,7 +108,13 @@ Text to analyze:
 
     response_text = response.choices[0].message.content.strip()
     response_text = response_text.replace("```json", "").replace("```", "").strip()
-    result = json.loads(response_text)
+
+    # FIX 2: Wrap json.loads in try/except to catch malformed AI responses
+    try:
+        result = json.loads(response_text)
+    except json.JSONDecodeError:
+        raise Exception(f"AI returned invalid JSON: {response_text[:200]}")
+
     return result
 
 # ─── UI Routes ───────────────────────────────────────────────────────────────
@@ -194,6 +200,8 @@ def document_analyze():
         return jsonify({"status": "error", "message": "Invalid base64 encoding"}), 400
 
     # Step 4: Extract text
+    # FIX 1: Initialize text to empty string before if/elif block
+    text = ""
     try:
         if file_type == "pdf":
             text = extract_from_pdf(file_bytes)
