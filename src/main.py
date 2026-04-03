@@ -13,18 +13,6 @@ from dotenv import load_dotenv
 # Load the API key from .env file
 load_dotenv()
 
-# ── Tesseract: optional — graceful fallback if not installed ──────────────────
-TESSERACT_AVAILABLE = False
-try:
-    import pytesseract
-    tesseract_path = os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
-    pytesseract.pytesseract.tesseract_cmd = tesseract_path
-    # Quick smoke-test
-    pytesseract.get_tesseract_version()
-    TESSERACT_AVAILABLE = True
-except Exception:
-    pass  # Tesseract not installed — image OCR will return a friendly message
-
 # Create the Flask app — template folder points up one level from src/
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 CORS(app)
@@ -50,17 +38,38 @@ def extract_from_docx(file_bytes):
     return text.strip()
 
 def extract_from_image(file_bytes):
-    """Extract text from image using Tesseract OCR.
-    Falls back gracefully if Tesseract is not installed."""
-    if not TESSERACT_AVAILABLE:
-        raise RuntimeError(
-            "Image OCR is not available on this server. "
-            "Please upload a PDF or DOCX file instead. "
-            "(Tesseract OCR is not installed in this environment.)"
-        )
+    """Extract text from image using Groq Vision (no Tesseract needed)."""
+    # Convert image to base64
+    image_base64 = base64.b64encode(file_bytes).decode("utf-8")
+
+    # Detect image format
     image = Image.open(io.BytesIO(file_bytes))
-    text = pytesseract.image_to_string(image)
-    return text.strip()
+    fmt = image.format.lower() if image.format else "jpeg"
+    mime_type = f"image/{fmt}"
+
+    response = client.chat.completions.create(
+        model="meta-llama/llama-4-scout-17b-16e-instruct",  # Groq vision model
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime_type};base64,{image_base64}"
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": "Extract and return ALL text visible in this image. Return only the raw text, nothing else."
+                    }
+                ]
+            }
+        ],
+        temperature=0.1,
+        max_tokens=2000
+    )
+    return response.choices[0].message.content.strip()
 
 # ─── Groq AI Analysis Function ───────────────────────────────────────────────
 
@@ -128,7 +137,6 @@ def analyze():
         else:
             return jsonify({"error": "Unsupported file type. Please upload PDF, DOCX, PNG, or JPG."}), 400
     except RuntimeError as e:
-        # Friendly error (e.g. Tesseract not available)
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"File extraction failed: {str(e)}"}), 500
