@@ -14,12 +14,12 @@ from dotenv import load_dotenv
 # Load the API key from .env file
 load_dotenv()
 
-# Tell pytesseract where Tesseract is installed (update path on your server)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-os.environ["TESSDATA_PREFIX"] = r"C:\Program Files\Tesseract-OCR\tessdata"
+# Tesseract path — works on both Windows (local) and Linux (Render)
+tesseract_path = os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
-# Create the Flask app
-app = Flask(__name__)
+# Create the Flask app — template folder points up one level from src/
+app = Flask(__name__, template_folder="../templates", static_folder="../static")
 CORS(app)
 
 # Create Groq client
@@ -207,4 +207,5 @@ def document_analyze():
 # ─── Run the app ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
