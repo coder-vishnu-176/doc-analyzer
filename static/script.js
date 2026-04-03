@@ -1,18 +1,18 @@
 // ── DOM References ──────────────────────────────────────────────────────────
-const fileInput   = document.getElementById('fileInput');
-const uploadBox   = document.getElementById('uploadBox');
-const fileChip    = document.getElementById('fileChip');
-const fcName      = document.getElementById('fcName');
-const fcSize      = document.getElementById('fcSize');
-const fcIcon      = document.getElementById('fcIcon');
-const fcRemove    = document.getElementById('fcRemove');
-const analyzeBtn  = document.getElementById('analyzeBtn');
-const loader      = document.getElementById('loader');
-const loaderSub   = document.getElementById('loaderSub');
-const results     = document.getElementById('results');
-const errorBox    = document.getElementById('errorBox');
-const errorText   = document.getElementById('errorText');
-const resetBtn    = document.getElementById('resetBtn');
+const fileInput  = document.getElementById('fileInput');
+const uploadBox  = document.getElementById('uploadBox');
+const fileChip   = document.getElementById('fileChip');
+const fcName     = document.getElementById('fcName');
+const fcSize     = document.getElementById('fcSize');
+const fcIcon     = document.getElementById('fcIcon');
+const fcRemove   = document.getElementById('fcRemove');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const loader     = document.getElementById('loader');
+const loaderSub  = document.getElementById('loaderSub');
+const results    = document.getElementById('results');
+const errorBox   = document.getElementById('errorBox');
+const errorText  = document.getElementById('errorText');
+const resetBtn   = document.getElementById('resetBtn');
 
 let selectedFile = null;
 const fileIcons = { pdf:'📄', docx:'📝', doc:'📝', png:'🖼️', jpg:'🖼️', jpeg:'🖼️' };
@@ -22,7 +22,6 @@ function formatSize(b) {
   if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
   return (b/1048576).toFixed(1) + ' MB';
 }
-
 function getExt(name) { return name.split('.').pop().toLowerCase(); }
 
 function handleFile(file) {
@@ -38,14 +37,12 @@ function handleFile(file) {
 }
 
 fileInput.addEventListener('change', function() { if (this.files[0]) handleFile(this.files[0]); });
-
 uploadBox.addEventListener('dragover',  e => { e.preventDefault(); uploadBox.classList.add('dragover'); });
 uploadBox.addEventListener('dragleave', ()=> uploadBox.classList.remove('dragover'));
 uploadBox.addEventListener('drop', e => {
   e.preventDefault(); uploadBox.classList.remove('dragover');
   if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
-
 fcRemove.addEventListener('click', resetUpload);
 
 function resetUpload() {
@@ -54,6 +51,42 @@ function resetUpload() {
   uploadBox.style.display = 'block';
   analyzeBtn.disabled = true;
 }
+
+// ── Pages ───────────────────────────────────────────────────────────────────
+const analyzePage = document.getElementById('analyzePage');
+const historyPage = document.getElementById('historyPage');
+const themeDrawer = document.getElementById('themeDrawer');
+
+function showPage(name) {
+  analyzePage.style.display = name === 'analyze' ? 'block' : 'none';
+  historyPage.style.display = name === 'history' ? 'block' : 'none';
+
+  if (name === 'theme') {
+    const isOpen = themeDrawer.style.display === 'block';
+    themeDrawer.style.display = isOpen ? 'none' : 'block';
+  } else {
+    themeDrawer.style.display = 'none';
+  }
+}
+
+// ── Sidebar Nav ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+    const page = this.dataset.page;
+
+    if (page === 'history') {
+      showPage('history');
+      renderHistory();
+    } else if (page === 'theme') {
+      showPage('theme');
+    } else {
+      showPage('analyze');
+    }
+  });
+});
 
 // ── Loader ──────────────────────────────────────────────────────────────────
 const steps = [
@@ -76,13 +109,9 @@ function startLoader() {
     loaderSub.textContent = steps[i];
   }, 900);
 }
+function stopLoader() { clearInterval(loaderTimer); loader.style.display = 'none'; }
 
-function stopLoader() {
-  clearInterval(loaderTimer);
-  loader.style.display = 'none';
-}
-
-// ── Analyze ─────────────────────────────────────────────────────────────────
+// ── Analyze ──────────────────────────────────────────────────────────────────
 analyzeBtn.addEventListener('click', async function() {
   if (!selectedFile) return;
   analyzeBtn.disabled = true;
@@ -92,12 +121,12 @@ analyzeBtn.addEventListener('click', async function() {
   formData.append('file', selectedFile);
 
   try {
-    const res  = await fetch('/analyze', { method: 'POST', body: formData });
+    const res  = await fetch('/analyze', { method:'POST', body:formData });
     const data = await res.json();
     stopLoader();
-
     if (data.error) { showError(data.error); analyzeBtn.disabled = false; return; }
     showResults(data);
+    saveToHistory(data, selectedFile.name);
   } catch(err) {
     stopLoader();
     showError('Connection failed. Please check your server.');
@@ -111,16 +140,13 @@ function showResults(data) {
   const entities  = data.entities || {};
   const summary   = data.summary  || 'No summary available.';
 
-  // File name
   document.getElementById('rhFile').textContent = selectedFile ? selectedFile.name : '';
 
-  // ── Stats ──
   const sentEl = document.getElementById('mSentiment');
   sentEl.textContent = sentiment.charAt(0).toUpperCase() + sentiment.slice(1);
-  const sentColors = { positive: '#34d399', negative: '#f87171', neutral: '#7a84a0' };
+  const sentColors = { positive:'#34d399', negative:'#f87171', neutral:'#7a84a0' };
   document.getElementById('mIndicator').style.background = sentColors[sentiment] || sentColors.neutral;
 
-  // Count total entities
   let totalEnt = 0;
   if (Array.isArray(entities)) {
     totalEnt = entities.length;
@@ -128,23 +154,15 @@ function showResults(data) {
     totalEnt = (entities.names||[]).length + (entities.dates||[]).length +
                (entities.organizations||[]).length + (entities.amounts||[]).length;
   }
-
   document.getElementById('mEntities').textContent = totalEnt;
-  setTimeout(() => {
-    document.getElementById('mEntitiesBar').style.width = Math.min(totalEnt * 8, 100) + '%';
-  }, 200);
+  setTimeout(() => { document.getElementById('mEntitiesBar').style.width = Math.min(totalEnt * 8, 100) + '%'; }, 200);
 
-  // Sentences = key points
   const sentences = (summary.match(/[^.!?]+[.!?]+/g) || []).filter(s => s.trim().length > 20);
   document.getElementById('mPoints').textContent = sentences.length;
-  setTimeout(() => {
-    document.getElementById('mPointsBar').style.width = Math.min(sentences.length * 14, 100) + '%';
-  }, 200);
+  setTimeout(() => { document.getElementById('mPointsBar').style.width = Math.min(sentences.length * 14, 100) + '%'; }, 200);
 
-  // ── Summary ──
   document.getElementById('summaryText').textContent = summary;
 
-  // ── Sentiment card ──
   const badge = document.getElementById('sentBadge');
   badge.textContent = sentiment.charAt(0).toUpperCase() + sentiment.slice(1);
   badge.className = 'sent-badge ' + sentiment;
@@ -152,67 +170,53 @@ function showResults(data) {
   const fill  = document.getElementById('sentFill');
   const thumb = document.getElementById('sentThumb');
   fill.className = 'sent-fill ' + sentiment;
-  const pos = { positive: '85%', negative: '15%', neutral: '50%' }[sentiment] || '50%';
+  const pos = { positive:'85%', negative:'15%', neutral:'50%' }[sentiment] || '50%';
   setTimeout(() => { fill.style.width = pos; thumb.style.left = pos; }, 250);
 
   const descs = {
-    positive: 'The document carries a positive, optimistic tone. Content reflects constructive or encouraging language.',
-    negative: 'The document carries a critical or negative tone. Content reflects concerns, problems, or opposition.',
-    neutral:  'The document maintains an objective, balanced tone. Content is factual and informational.'
+    positive:'The document carries a positive, optimistic tone. Content reflects constructive or encouraging language.',
+    negative:'The document carries a critical or negative tone. Content reflects concerns, problems, or opposition.',
+    neutral:'The document maintains an objective, balanced tone. Content is factual and informational.'
   };
   document.getElementById('sentDesc').textContent = descs[sentiment] || '';
 
-  // ── Entities ──
   const grid = document.getElementById('entGrid');
   grid.innerHTML = '';
   document.getElementById('entCount').textContent = totalEnt + ' found';
 
   if (Array.isArray(entities) && entities.length > 0) {
-    // Old flat array format
     const tags = document.createElement('div');
     tags.className = 'ent-tags';
-    entities.forEach(e => {
-      const type = detectEntityType(e);
-      tags.appendChild(makeTag(e, type));
-    });
+    entities.forEach(e => { const type = detectEntityType(e); tags.appendChild(makeTag(e, type)); });
     grid.appendChild(tags);
   } else if (typeof entities === 'object') {
-    // New structured format {names, dates, organizations, amounts}
     const sections = [
-      { key: 'names',         label: '👤 People',        cls: 'ent-person'  },
-      { key: 'organizations', label: '🏢 Organizations',  cls: 'ent-org'     },
-      { key: 'dates',         label: '📅 Dates',          cls: 'ent-date'    },
-      { key: 'amounts',       label: '💰 Amounts',        cls: 'ent-amount'  }
+      { key:'names',         label:'👤 People',       cls:'person'  },
+      { key:'organizations', label:'🏢 Organizations', cls:'org'     },
+      { key:'dates',         label:'📅 Dates',         cls:'date'    },
+      { key:'amounts',       label:'💰 Amounts',       cls:'amount'  }
     ];
-
     let anyFound = false;
     sections.forEach(sec => {
       const items = entities[sec.key] || [];
-      if (items.length === 0) return;
+      if (!items.length) return;
       anyFound = true;
-
       const section = document.createElement('div');
-
       const title = document.createElement('div');
       title.className = 'ent-section-title';
       title.textContent = sec.label;
       section.appendChild(title);
-
       const tags = document.createElement('div');
       tags.className = 'ent-tags';
-      items.forEach(item => tags.appendChild(makeTag(item, sec.cls.replace('ent-', ''))));
+      items.forEach(item => tags.appendChild(makeTag(item, sec.cls)));
       section.appendChild(tags);
       grid.appendChild(section);
     });
-
-    if (!anyFound) {
-      grid.innerHTML = '<span class="ent-empty">No entities detected in this document.</span>';
-    }
+    if (!anyFound) grid.innerHTML = '<span class="ent-empty">No entities detected in this document.</span>';
   } else {
     grid.innerHTML = '<span class="ent-empty">No entities detected in this document.</span>';
   }
 
-  // ── Key Points ──
   if (sentences.length > 0) {
     const kpCard = document.getElementById('kpCard');
     const kpList = document.getElementById('kpList');
@@ -227,7 +231,7 @@ function showResults(data) {
   }
 
   results.style.display = 'block';
-  setTimeout(() => results.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  setTimeout(() => results.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 }
 
 function makeTag(text, type) {
@@ -236,7 +240,6 @@ function makeTag(text, type) {
   tag.textContent = text;
   return tag;
 }
-
 function detectEntityType(entity) {
   const l = entity.toLowerCase();
   if (/\d{4}|\bjan\b|\bfeb\b|\bmar\b|\bapr\b|\bjun\b|\bjul\b|\baug\b|\bsep\b|\boct\b|\bnov\b|\bdec\b/.test(l)) return 'date';
@@ -246,157 +249,170 @@ function detectEntityType(entity) {
   return 'default';
 }
 
-// ── Error ────────────────────────────────────────────────────────────────────
-function showError(msg, isInfo = false) {
+// ── Error ─────────────────────────────────────────────────────────────────────
+function showError(msg) {
   errorText.textContent = msg;
   errorBox.style.display = 'flex';
-  if (isInfo) {
-    errorBox.style.background = 'rgba(91,156,246,0.08)';
-    errorBox.style.borderColor = 'rgba(91,156,246,0.2)';
-    errorBox.style.color = 'var(--blue)';
-  } else {
-    errorBox.style.background = 'rgba(248,113,113,0.08)';
-    errorBox.style.borderColor = 'rgba(248,113,113,0.2)';
-    errorBox.style.color = 'var(--red)';
-  }
+  errorBox.style.background   = 'rgba(248,113,113,0.08)';
+  errorBox.style.borderColor  = 'rgba(248,113,113,0.2)';
+  errorBox.style.color        = 'var(--red)';
 }
 function hideError() { errorBox.style.display = 'none'; }
 
-// ── Reset ────────────────────────────────────────────────────────────────────
+// ── Reset ─────────────────────────────────────────────────────────────────────
 resetBtn.addEventListener('click', () => {
   results.style.display = 'none';
   hideError();
   document.getElementById('kpCard').style.display = 'none';
   resetUpload();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top:0, behavior:'smooth' });
   analyzeBtn.disabled = true;
 });
 
-// ── Sidebar Nav ──────────────────────────────────────────────────────────────
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', function(e) {
-    e.preventDefault();
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    this.classList.add('active');
-    const page = this.dataset.page;
-    if (page === 'history') {
-      showError('🚧 History — coming soon! Your past analyses will appear here.', true);
-      setTimeout(hideError, 3000);
-    } else if (page === 'settings') {
-      showThemePanel();
-    }
-  });
-});
+// ── History (localStorage) ───────────────────────────────────────────────────
+function saveToHistory(data, filename) {
+  const history = getHistory();
+  const entry = {
+    id: Date.now(),
+    filename,
+    date: new Date().toLocaleString(),
+    sentiment: (data.sentiment || 'neutral').toLowerCase(),
+    entityCount: countEntities(data.entities),
+    summary: (data.summary || '').slice(0, 120) + '…',
+    data
+  };
+  history.unshift(entry);
+  // Keep only last 20
+  const trimmed = history.slice(0, 20);
+  localStorage.setItem('doc-analyzer-history', JSON.stringify(trimmed));
+}
 
-// ── Theme Panel ──────────────────────────────────────────────────────────────
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('doc-analyzer-history') || '[]'); }
+  catch(e) { return []; }
+}
+
+function countEntities(entities) {
+  if (!entities) return 0;
+  if (Array.isArray(entities)) return entities.length;
+  return (entities.names||[]).length + (entities.dates||[]).length +
+         (entities.organizations||[]).length + (entities.amounts||[]).length;
+}
+
+function renderHistory() {
+  const list    = document.getElementById('historyList');
+  const empty   = document.getElementById('historyEmpty');
+  const history = getHistory();
+
+  // Remove old items (keep empty placeholder in DOM)
+  list.querySelectorAll('.history-item').forEach(el => el.remove());
+
+  if (!history.length) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const sentColors = {
+    positive: { bg:'rgba(52,211,153,0.1)', color:'#34d399', border:'rgba(52,211,153,0.2)' },
+    negative: { bg:'rgba(248,113,113,0.1)', color:'#f87171', border:'rgba(248,113,113,0.2)' },
+    neutral:  { bg:'var(--bg4)', color:'var(--text2)', border:'var(--border)' }
+  };
+
+  history.forEach(entry => {
+    const sc = sentColors[entry.sentiment] || sentColors.neutral;
+    const ext = getExt(entry.filename);
+    const icon = fileIcons[ext] || '📄';
+
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <div class="history-file-icon">${icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="history-file-name">${entry.filename}</div>
+        <div class="history-file-meta">
+          <span>🕐 ${entry.date}</span>
+          <span>📊 ${entry.entityCount} entities</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${entry.summary}</div>
+      </div>
+      <div class="history-badges">
+        <span class="history-sent-badge" style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border};">${entry.sentiment}</span>
+        <span class="history-ent-badge">${entry.entityCount} entities</span>
+      </div>
+      <button class="history-view-btn" data-id="${entry.id}">View</button>
+    `;
+
+    item.querySelector('.history-view-btn').addEventListener('click', () => {
+      // Switch to analyze page and re-display that result
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector('[data-page="analyze"]').classList.add('active');
+      showPage('analyze');
+      // Fake the filename for display
+      selectedFile = { name: entry.filename };
+      showResults(entry.data);
+    });
+
+    list.appendChild(item);
+  });
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
 const themes = {
   dark: {
     '--bg':'#080b12','--bg2':'#0d1120','--bg3':'#131929','--bg4':'#1a2235',
     '--border':'rgba(255,255,255,0.07)','--border2':'rgba(255,255,255,0.12)',
     '--text':'#eef0f8','--text2':'#7a84a0','--text3':'#3d4560',
     '--blue':'#5b9cf6','--blue2':'#3b7de8','--purple':'#a78bfa',
-    '--green':'#34d399','--orange':'#fb923c','--red':'#f87171'
+    '--green':'#34d399','--orange':'#fb923c','--red':'#f87171',
+    '--sidebar-bg':'rgba(13,17,32,0.97)'
   },
   light: {
     '--bg':'#f0f4fd','--bg2':'#ffffff','--bg3':'#f4f6fb','--bg4':'#eaedf5',
-    '--border':'rgba(0,0,0,0.08)','--border2':'rgba(0,0,0,0.14)',
+    '--border':'rgba(0,0,0,0.08)','--border2':'rgba(0,0,0,0.15)',
     '--text':'#0f1324','--text2':'#4a5270','--text3':'#9aa0b8',
     '--blue':'#2563eb','--blue2':'#1d4ed8','--purple':'#7c3aed',
-    '--green':'#059669','--orange':'#d97706','--red':'#dc2626'
+    '--green':'#059669','--orange':'#d97706','--red':'#dc2626',
+    '--sidebar-bg':'rgba(255,255,255,0.98)'
   },
   midnight: {
     '--bg':'#05080f','--bg2':'#080d1a','--bg3':'#0d1525','--bg4':'#131e30',
     '--border':'rgba(255,255,255,0.06)','--border2':'rgba(255,255,255,0.1)',
     '--text':'#c8d8f0','--text2':'#5a70a0','--text3':'#2e3d58',
     '--blue':'#38bdf8','--blue2':'#0ea5e9','--purple':'#a78bfa',
-    '--green':'#4ade80','--orange':'#f59e0b','--red':'#fb7185'
+    '--green':'#4ade80','--orange':'#f59e0b','--red':'#fb7185',
+    '--sidebar-bg':'rgba(5,8,15,0.98)'
   }
 };
 
-let currentTheme = localStorage.getItem('documind-theme') || 'dark';
+let currentTheme = localStorage.getItem('doc-analyzer-theme') || 'dark';
 applyTheme(currentTheme);
 
 function applyTheme(name) {
   const t = themes[name]; if (!t) return;
-  Object.entries(t).forEach(([k,v]) => document.documentElement.style.setProperty(k, v));
+  // Apply to BOTH html element and body so entire page + sidebar changes
+  const root = document.documentElement;
+  Object.entries(t).forEach(([k,v]) => root.style.setProperty(k, v));
+  root.setAttribute('data-theme', name);
   currentTheme = name;
-  localStorage.setItem('documind-theme', name);
+  localStorage.setItem('doc-analyzer-theme', name);
+  updateThemeUI();
 }
 
-function showThemePanel() {
-  const existing = document.getElementById('themePanel');
-  if (existing) { existing.remove(); document.getElementById('themeOverlay')?.remove(); return; }
-
-  const overlay = document.createElement('div');
-  overlay.id = 'themeOverlay';
-  Object.assign(overlay.style, {
-    position:'fixed',inset:'0',background:'rgba(0,0,0,0.6)',
-    zIndex:'9999',backdropFilter:'blur(4px)'
+function updateThemeUI() {
+  document.querySelectorAll('.theme-opt').forEach(btn => {
+    const isActive = btn.dataset.theme === currentTheme;
+    btn.classList.toggle('active-theme', isActive);
+    const tag = btn.querySelector('.theme-active-tag');
+    if (tag) tag.textContent = isActive ? 'Active' : '';
   });
-
-  const panel = document.createElement('div');
-  panel.id = 'themePanel';
-  Object.assign(panel.style, {
-    position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
-    background:'var(--bg2)',border:'1px solid var(--border2)',
-    borderRadius:'18px',padding:'28px',width:'320px',
-    zIndex:'10000',boxShadow:'0 32px 80px rgba(0,0,0,0.6)',
-    fontFamily:"'DM Sans', sans-serif"
-  });
-
-  const opts = [
-    { name:'dark',     label:'Dark',     desc:'Default dark mode',   dot:'#5b9cf6' },
-    { name:'light',    label:'Light',    desc:'Clean light mode',     dot:'#2563eb' },
-    { name:'midnight', label:'Midnight', desc:'Deep blue dark',       dot:'#38bdf8' },
-  ];
-
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Settings</div>
-      <button id="closeTheme" style="background:var(--bg4);border:1px solid var(--border);color:var(--text2);
-        width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px;
-        display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>
-    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;font-weight:600;">Choose Theme</div>
-    <div id="themeGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
-  `;
-
-  document.body.appendChild(overlay);
-  document.body.appendChild(panel);
-
-  const grid = document.getElementById('themeGrid');
-  opts.forEach(t => {
-    const opt = document.createElement('div');
-    const isActive = currentTheme === t.name;
-    opt.style.cssText = `cursor:pointer;padding:14px 16px;border-radius:12px;
-      border:1.5px solid ${isActive ? 'var(--blue)' : 'var(--border)'};
-      background:var(--bg3);display:flex;align-items:center;gap:12px;transition:all 0.15s;`;
-    opt.innerHTML = `
-      <div style="width:12px;height:12px;border-radius:50%;background:${t.dot};box-shadow:0 0 8px ${t.dot};flex-shrink:0;"></div>
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${t.label}</div>
-        <div style="font-size:11px;color:var(--text3)">${t.desc}</div>
-      </div>
-      ${isActive ? `<div style="margin-left:auto;font-size:11px;color:var(--blue);font-weight:700;">Active</div>` : ''}
-    `;
-    opt.addEventListener('click', () => {
-      applyTheme(t.name);
-      grid.querySelectorAll('div').forEach(o => o.style.border = '1.5px solid var(--border)');
-      opt.style.border = '1.5px solid var(--blue)';
-    });
-    grid.appendChild(opt);
-  });
-
-  document.getElementById('closeTheme').addEventListener('click', closeThemePanel);
-  overlay.addEventListener('click', closeThemePanel);
 }
 
-function closeThemePanel() {
-  document.getElementById('themePanel')?.remove();
-  document.getElementById('themeOverlay')?.remove();
-}
+document.querySelectorAll('.theme-opt').forEach(btn => {
+  btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+});
 
-// ── Custom Cursor ────────────────────────────────────────────────────────────
+// ── Custom Cursor — faster tracking (0.25 lerp instead of 0.1) ────────────────
 const cursorMain = document.getElementById('cursor-main');
 const canvas     = document.getElementById('cursor-trail');
 const ctx        = canvas.getContext('2d');
@@ -411,7 +427,7 @@ class Particle {
   constructor(x, y) {
     this.x=x; this.y=y;
     this.size=Math.random()*2.5+1.5; this.life=1;
-    this.decay=Math.random()*0.03+0.02;
+    this.decay=Math.random()*0.035+0.025;
     this.vx=(Math.random()-0.5)*1; this.vy=(Math.random()-0.5)*1;
     const cols=['--blue','--purple','--green'];
     this.color=getComputedStyle(document.documentElement).getPropertyValue(cols[Math.floor(Math.random()*cols.length)]).trim();
@@ -433,10 +449,12 @@ function setCursorColor(v) {
 }
 
 function animateCursor() {
-  cx += (mx-cx)*0.1; cy += (my-cy)*0.1;
+  // 0.25 = faster cursor (was 0.1)
+  cx += (mx-cx)*0.25;
+  cy += (my-cy)*0.25;
   cursorMain.style.left=cx+'px'; cursorMain.style.top=cy+'px';
   setCursorColor('--blue');
-  if (Math.random()>0.5) particles.push(new Particle(cx,cy));
+  if (Math.random()>0.55) particles.push(new Particle(cx,cy));
   ctx.clearRect(0,0,canvas.width,canvas.height);
   for (let i=particles.length-1;i>=0;i--) {
     particles[i].update(); particles[i].draw();
@@ -446,7 +464,7 @@ function animateCursor() {
 }
 animateCursor();
 
-document.querySelectorAll('a, button, label, .nav-item, .dz-cta, .analyze-btn, .reset-btn').forEach(el => {
+document.querySelectorAll('a, button, label, .nav-item, .dz-cta, .analyze-btn, .reset-btn, .theme-opt, .history-view-btn').forEach(el => {
   el.addEventListener('mouseenter', () => { cursorMain.classList.add('hovering'); setCursorColor('--purple'); });
   el.addEventListener('mouseleave', () => { cursorMain.classList.remove('hovering'); setCursorColor('--blue'); });
 });

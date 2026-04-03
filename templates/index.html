@@ -3,16 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DocuMind — AI Document Intelligence</title>
+    <title>Doc-Analyzer — AI Document Intelligence</title>
     <link rel="stylesheet" href="/static/style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
-    <!-- Ambient background orbs -->
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     <div class="bg-orb orb-3"></div>
@@ -36,7 +35,7 @@
           </svg>
         </div>
         <div>
-          <div class="logo-name">DocuMind</div>
+          <div class="logo-name">Doc-Analyzer</div>
           <div class="logo-tagline">AI Intelligence</div>
         </div>
       </div>
@@ -69,7 +68,7 @@
           </svg>
           <span>History</span>
         </a>
-        <a class="nav-item" href="#" data-page="settings">
+        <a class="nav-item" href="#" data-page="theme">
           <svg
             width="16"
             height="16"
@@ -78,20 +77,46 @@
             stroke="currentColor"
             stroke-width="2"
           >
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
-            />
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a10 10 0 0 1 0 20" />
+            <path d="M12 2v20M2 12h20" opacity="0.4" />
           </svg>
-          <span>Settings</span>
+          <span>Theme</span>
         </a>
       </nav>
 
-      <div class="sidebar-bottom">
-        <div class="api-status">
-          <div class="api-dot"></div>
-          <span>Groq API · Live</span>
+      <!-- Theme Drawer (inside sidebar) -->
+      <div id="themeDrawer" class="theme-drawer" style="display: none">
+        <div class="theme-drawer-title">Choose Theme</div>
+        <div class="theme-options">
+          <button class="theme-opt" data-theme="dark">
+            <div class="theme-swatch dark-swatch"></div>
+            <div class="theme-opt-info">
+              <div class="theme-opt-name">Dark</div>
+              <div class="theme-opt-desc">Default dark mode</div>
+            </div>
+            <span class="theme-active-tag" id="tag-dark"></span>
+          </button>
+          <button class="theme-opt" data-theme="light">
+            <div class="theme-swatch light-swatch"></div>
+            <div class="theme-opt-info">
+              <div class="theme-opt-name">Light</div>
+              <div class="theme-opt-desc">Clean light mode</div>
+            </div>
+            <span class="theme-active-tag" id="tag-light"></span>
+          </button>
+          <button class="theme-opt" data-theme="midnight">
+            <div class="theme-swatch midnight-swatch"></div>
+            <div class="theme-opt-info">
+              <div class="theme-opt-name">Midnight</div>
+              <div class="theme-opt-desc">Deep blue dark</div>
+            </div>
+            <span class="theme-active-tag" id="tag-midnight"></span>
+          </button>
         </div>
+      </div>
+
+      <div class="sidebar-bottom">
         <div class="user-card">
           <div class="user-avatar">V</div>
           <div class="user-info">
@@ -104,11 +129,9 @@
 
     <!-- Main -->
     <main class="main">
-      <!-- Topbar -->
       <header class="topbar">
         <div>
-          <div class="topbar-eyebrow">Track 2 · AI Document Analysis</div>
-          <h1 class="topbar-title">Document Intelligence</h1>
+          <h1 class="topbar-title">Doc-Analyzer</h1>
         </div>
         <div class="topbar-right">
           <div class="badge-ai">
@@ -118,20 +141,17 @@
         </div>
       </header>
 
-      <!-- Upload Section -->
-      <section id="uploadSection">
+      <!-- Analyze Page -->
+      <section id="analyzePage">
         <div class="upload-grid">
-          <!-- Drop Zone -->
           <div class="upload-card">
             <div class="upload-card-header">
               <span class="card-label">Upload Document</span>
               <div class="format-pills">
-                <span class="fpill">PDF</span>
-                <span class="fpill">DOCX</span>
-                <span class="fpill">IMG</span>
+                <span class="fpill">PDF</span><span class="fpill">DOCX</span
+                ><span class="fpill">IMG</span>
               </div>
             </div>
-
             <div class="dropzone" id="uploadBox">
               <div class="dz-glow"></div>
               <div class="dz-content">
@@ -160,7 +180,6 @@
                 />
               </div>
             </div>
-
             <div class="file-chip" id="fileChip" style="display: none">
               <div class="fc-icon" id="fcIcon">📄</div>
               <div class="fc-meta">
@@ -181,7 +200,6 @@
                 </svg>
               </button>
             </div>
-
             <button class="analyze-btn" id="analyzeBtn" disabled>
               <span class="btn-icon">
                 <svg
@@ -201,7 +219,6 @@
             </button>
           </div>
 
-          <!-- Features -->
           <div class="features-card">
             <div class="upload-card-header">
               <span class="card-label">What you'll get</span>
@@ -295,153 +312,155 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div class="tech-strip">
-              <span class="tech-tag">Groq LLaMA 3.3</span>
-              <span class="tech-tag">PyMuPDF</span>
-              <span class="tech-tag">Tesseract OCR</span>
-              <span class="tech-tag">Flask API</span>
+        <!-- Loader -->
+        <div id="loader" style="display: none" class="loader-wrap">
+          <div class="loader-card">
+            <div class="loader-visual">
+              <div class="loader-ring r1"></div>
+              <div class="loader-ring r2"></div>
+              <div class="loader-ring r3"></div>
+              <div class="loader-core">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+              </div>
+            </div>
+            <div class="loader-text">
+              <div class="loader-title">Analyzing your document</div>
+              <div class="loader-step" id="loaderSub">
+                Reading file contents…
+              </div>
+              <div class="loader-bar-wrap">
+                <div class="loader-bar" id="lcBar"></div>
+              </div>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- Loader -->
-      <div id="loader" style="display: none" class="loader-wrap">
-        <div class="loader-card">
-          <div class="loader-visual">
-            <div class="loader-ring r1"></div>
-            <div class="loader-ring r2"></div>
-            <div class="loader-ring r3"></div>
-            <div class="loader-core">
+        <!-- Results -->
+        <section id="results" style="display: none" class="results-wrap">
+          <div class="results-topbar">
+            <div>
+              <div class="results-eyebrow">Analysis Complete</div>
+              <div class="results-filename" id="rhFile"></div>
+            </div>
+            <button class="reset-btn" id="resetBtn">
               <svg
-                width="20"
-                height="20"
+                width="13"
+                height="13"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
+                stroke-width="2.5"
               >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
+              New Analysis
+            </button>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">Sentiment</div>
+              <div class="stat-value" id="mSentiment">—</div>
+              <div class="stat-bar-line" id="mIndicator"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Entities Detected</div>
+              <div class="stat-value" id="mEntities">—</div>
+              <div class="stat-bar-wrap">
+                <div
+                  class="stat-bar-fill"
+                  id="mEntitiesBar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Key Points</div>
+              <div class="stat-value" id="mPoints">—</div>
+              <div class="stat-bar-wrap">
+                <div
+                  class="stat-bar-fill stat-purple"
+                  id="mPointsBar"
+                  style="width: 0%"
+                ></div>
+              </div>
             </div>
           </div>
-          <div class="loader-text">
-            <div class="loader-title">Analyzing your document</div>
-            <div class="loader-step" id="loaderSub">Reading file contents…</div>
-            <div class="loader-bar-wrap">
-              <div class="loader-bar" id="lcBar"></div>
+          <div class="res-grid">
+            <div class="res-card res-full">
+              <div class="res-card-header">
+                <div class="res-card-label">
+                  <span class="rcdot blue"></span> Summary
+                </div>
+              </div>
+              <p class="summary-text" id="summaryText"></p>
+            </div>
+            <div class="res-card">
+              <div class="res-card-header">
+                <div class="res-card-label">
+                  <span class="rcdot green"></span> Sentiment
+                </div>
+                <span class="sent-badge" id="sentBadge"></span>
+              </div>
+              <div class="sent-meter">
+                <div class="sent-track">
+                  <div class="sent-fill" id="sentFill"></div>
+                  <div class="sent-thumb" id="sentThumb"></div>
+                </div>
+                <div class="sent-scale">
+                  <span>Negative</span><span>Neutral</span><span>Positive</span>
+                </div>
+              </div>
+              <p class="sent-desc" id="sentDesc"></p>
+            </div>
+            <div class="res-card">
+              <div class="res-card-header">
+                <div class="res-card-label">
+                  <span class="rcdot purple"></span> Entities
+                </div>
+                <span class="ent-count-badge" id="entCount"></span>
+              </div>
+              <div class="ent-sections" id="entGrid"></div>
+            </div>
+            <div class="res-card res-full" id="kpCard" style="display: none">
+              <div class="res-card-header">
+                <div class="res-card-label">
+                  <span class="rcdot orange"></span> Key Points
+                </div>
+              </div>
+              <div class="kp-grid" id="kpList"></div>
             </div>
           </div>
+        </section>
+      </section>
+
+      <!-- History Page -->
+      <section id="historyPage" style="display: none" class="history-wrap">
+        <div class="history-header">
+          <div class="results-eyebrow">Your Past Analyses</div>
+          <h2 class="history-title">History</h2>
         </div>
-      </div>
-
-      <!-- Results -->
-      <section id="results" style="display: none" class="results-wrap">
-        <div class="results-topbar">
-          <div>
-            <div class="results-eyebrow">Analysis Complete</div>
-            <div class="results-filename" id="rhFile"></div>
-          </div>
-          <button class="reset-btn" id="resetBtn">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            New Analysis
-          </button>
-        </div>
-
-        <!-- Stats Row -->
-        <div class="stats-row">
-          <div class="stat-card" id="statSentiment">
-            <div class="stat-label">Sentiment</div>
-            <div class="stat-value" id="mSentiment">—</div>
-            <div class="stat-bar-line" id="mIndicator"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Entities Detected</div>
-            <div class="stat-value" id="mEntities">—</div>
-            <div class="stat-bar-wrap">
-              <div
-                class="stat-bar-fill"
-                id="mEntitiesBar"
-                style="width: 0%"
-              ></div>
+        <div id="historyList" class="history-list">
+          <div class="history-empty" id="historyEmpty">
+            <div class="history-empty-icon">🕐</div>
+            <div class="history-empty-text">No analyses yet</div>
+            <div class="history-empty-sub">
+              Your past document analyses will appear here after you analyze a
+              document.
             </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Key Points</div>
-            <div class="stat-value" id="mPoints">—</div>
-            <div class="stat-bar-wrap">
-              <div
-                class="stat-bar-fill stat-purple"
-                id="mPointsBar"
-                style="width: 0%"
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Main Results Grid -->
-        <div class="res-grid">
-          <!-- Summary — full width -->
-          <div class="res-card res-full">
-            <div class="res-card-header">
-              <div class="res-card-label">
-                <span class="rcdot blue"></span> Summary
-              </div>
-            </div>
-            <p class="summary-text" id="summaryText"></p>
-          </div>
-
-          <!-- Sentiment -->
-          <div class="res-card">
-            <div class="res-card-header">
-              <div class="res-card-label">
-                <span class="rcdot green"></span> Sentiment
-              </div>
-              <span class="sent-badge" id="sentBadge"></span>
-            </div>
-            <div class="sent-meter">
-              <div class="sent-track">
-                <div class="sent-fill" id="sentFill"></div>
-                <div class="sent-thumb" id="sentThumb"></div>
-              </div>
-              <div class="sent-scale">
-                <span>Negative</span><span>Neutral</span><span>Positive</span>
-              </div>
-            </div>
-            <p class="sent-desc" id="sentDesc"></p>
-          </div>
-
-          <!-- Entities -->
-          <div class="res-card">
-            <div class="res-card-header">
-              <div class="res-card-label">
-                <span class="rcdot purple"></span> Entities
-              </div>
-              <span class="ent-count-badge" id="entCount"></span>
-            </div>
-            <div class="ent-sections" id="entGrid"></div>
-          </div>
-
-          <!-- Key Points -->
-          <div class="res-card res-full" id="kpCard" style="display: none">
-            <div class="res-card-header">
-              <div class="res-card-label">
-                <span class="rcdot orange"></span> Key Points
-              </div>
-            </div>
-            <div class="kp-grid" id="kpList"></div>
           </div>
         </div>
       </section>
