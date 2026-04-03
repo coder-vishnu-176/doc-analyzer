@@ -64,7 +64,6 @@ function showPage(name) {
   if (name === 'theme') {
     const isOpen = themeDrawer.style.display === 'block';
     themeDrawer.style.display = isOpen ? 'none' : 'block';
-    // Keep analyze page visible behind the drawer
     analyzePage.style.display = 'block';
     historyPage.style.display = 'none';
   } else {
@@ -78,7 +77,6 @@ document.querySelectorAll('.nav-item').forEach(item => {
     e.preventDefault();
     const page = this.dataset.page;
 
-    // For theme, toggle drawer without changing active state of other items
     if (page === 'theme') {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       this.classList.add('active');
@@ -298,6 +296,12 @@ function getHistory() {
   catch(e) { return []; }
 }
 
+function deleteFromHistory(id) {
+  const history = getHistory().filter(entry => entry.id !== id);
+  localStorage.setItem('doc-analyzer-history', JSON.stringify(history));
+  renderHistory();
+}
+
 function countEntities(entities) {
   if (!entities) return 0;
   if (Array.isArray(entities)) return entities.length;
@@ -328,6 +332,7 @@ function renderHistory() {
 
     const item = document.createElement('div');
     item.className = 'history-item';
+    item.dataset.id = entry.id;
     item.innerHTML = `
       <div class="history-file-icon">${icon}</div>
       <div style="flex:1;min-width:0;">
@@ -343,6 +348,14 @@ function renderHistory() {
         <span class="history-ent-badge">${entry.entityCount} entities</span>
       </div>
       <button class="history-view-btn" data-id="${entry.id}">View</button>
+      <button class="history-delete-btn" data-id="${entry.id}" title="Delete">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="3,6 5,6 21,6"/>
+          <path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/>
+          <path d="M10,11v6M14,11v6"/>
+          <path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/>
+        </svg>
+      </button>
     `;
 
     item.querySelector('.history-view-btn').addEventListener('click', () => {
@@ -351,6 +364,15 @@ function renderHistory() {
       showPage('analyze');
       selectedFile = { name: entry.filename };
       showResults(entry.data);
+    });
+
+    item.querySelector('.history-delete-btn').addEventListener('click', () => {
+      const btn = item.querySelector('.history-delete-btn');
+      // Animate out then delete
+      item.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(20px)';
+      setTimeout(() => deleteFromHistory(entry.id), 260);
     });
 
     list.appendChild(item);
@@ -362,7 +384,6 @@ let currentTheme = localStorage.getItem('doc-analyzer-theme') || 'dark';
 applyTheme(currentTheme);
 
 function applyTheme(name) {
-  // Set data-theme on <html> — CSS variables in style.css handle everything
   document.documentElement.setAttribute('data-theme', name);
   currentTheme = name;
   localStorage.setItem('doc-analyzer-theme', name);
@@ -396,7 +417,6 @@ window.addEventListener('resize', resizeCanvas);
 
 let mx = window.innerWidth/2, my = window.innerHeight/2;
 let cx = mx, cy = my;
-// Velocity for extra smoothness
 let vx = 0, vy = 0;
 
 const particles = [];
@@ -443,7 +463,6 @@ function setCursorColor(v) {
 }
 
 function animateCursor() {
-  // Spring-based smooth tracking: lerp = 0.28 (fast but smooth)
   const LERP = 0.28;
   cx += (mx - cx) * LERP;
   cy += (my - cy) * LERP;
@@ -452,7 +471,6 @@ function animateCursor() {
   cursorMain.style.top  = cy + 'px';
   setCursorColor('--blue');
 
-  // Spawn particles on movement
   const dist = Math.hypot(mx - cx, my - cy);
   if (dist > 2 && Math.random() > 0.45) {
     particles.push(new Particle(cx, cy));
@@ -468,8 +486,7 @@ function animateCursor() {
 }
 animateCursor();
 
-// Hover & click effects
-document.querySelectorAll('a, button, label, .nav-item, .dz-cta, .analyze-btn, .reset-btn, .theme-opt, .history-view-btn').forEach(el => {
+document.querySelectorAll('a, button, label, .nav-item, .dz-cta, .analyze-btn, .reset-btn, .theme-opt, .history-view-btn, .history-delete-btn').forEach(el => {
   el.addEventListener('mouseenter', () => { cursorMain.classList.add('hovering');    setCursorColor('--purple'); });
   el.addEventListener('mouseleave', () => { cursorMain.classList.remove('hovering'); setCursorColor('--blue'); });
 });
