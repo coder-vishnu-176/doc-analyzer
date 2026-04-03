@@ -1,280 +1,487 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DocuMind — AI Document Analyzer</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocuMind — AI Document Intelligence</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Ambient background orbs -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+    <div class="noise-overlay"></div>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">D</div>
-      <span class="logo-text">doc-analyzer</span>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path
+              d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"
+            />
+          </svg>
+        </div>
+        <div>
+          <div class="logo-name">DocuMind</div>
+          <div class="logo-tagline">AI Intelligence</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-item active" href="#" data-page="analyze">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <span>Analyze</span>
+        </a>
+        <a class="nav-item" href="#" data-page="history">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+          </svg>
+          <span>History</span>
+        </a>
+        <a class="nav-item" href="#" data-page="settings">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
+            />
+          </svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="api-status">
+          <div class="api-dot"></div>
+          <span>Groq API · Live</span>
+        </div>
+        <div class="user-card">
+          <div class="user-avatar">V</div>
+          <div class="user-info">
+            <div class="user-name">Vishnu</div>
+            <div class="user-plan">Free Plan</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <div class="topbar-eyebrow">Track 2 · AI Document Analysis</div>
+          <h1 class="topbar-title">Document Intelligence</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="badge-ai">
+            <span class="badge-pulse"></span>
+            AI Ready
+          </div>
+        </div>
+      </header>
+
+      <!-- Upload Section -->
+      <section id="uploadSection">
+        <div class="upload-grid">
+          <!-- Drop Zone -->
+          <div class="upload-card">
+            <div class="upload-card-header">
+              <span class="card-label">Upload Document</span>
+              <div class="format-pills">
+                <span class="fpill">PDF</span>
+                <span class="fpill">DOCX</span>
+                <span class="fpill">IMG</span>
+              </div>
+            </div>
+
+            <div class="dropzone" id="uploadBox">
+              <div class="dz-glow"></div>
+              <div class="dz-content">
+                <div class="dz-icon-wrap">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17,8 12,3 7,8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </div>
+                <p class="dz-title">Drop your file here</p>
+                <p class="dz-sub">PDF, DOCX, PNG, JPG supported</p>
+                <label class="dz-cta" for="fileInput">Browse Files</label>
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept=".pdf,.docx,.png,.jpg,.jpeg"
+                  hidden
+                />
+              </div>
+            </div>
+
+            <div class="file-chip" id="fileChip" style="display: none">
+              <div class="fc-icon" id="fcIcon">📄</div>
+              <div class="fc-meta">
+                <div class="fc-name" id="fcName"></div>
+                <div class="fc-size" id="fcSize"></div>
+              </div>
+              <button class="fc-remove" id="fcRemove" title="Remove">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <button class="analyze-btn" id="analyzeBtn" disabled>
+              <span class="btn-icon">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+              </span>
+              <span class="btn-text">Analyze Document</span>
+              <span class="btn-shimmer"></span>
+            </button>
+          </div>
+
+          <!-- Features -->
+          <div class="features-card">
+            <div class="upload-card-header">
+              <span class="card-label">What you'll get</span>
+            </div>
+            <div class="features-list">
+              <div class="feat">
+                <div class="feat-icon feat-blue">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="feat-title">Smart Summary</div>
+                  <div class="feat-desc">
+                    Concise AI-generated overview of your document
+                  </div>
+                </div>
+              </div>
+              <div class="feat">
+                <div class="feat-icon feat-purple">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                    />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="feat-title">Entity Extraction</div>
+                  <div class="feat-desc">
+                    Names, orgs, dates, amounts — all identified
+                  </div>
+                </div>
+              </div>
+              <div class="feat">
+                <div class="feat-icon feat-green">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="feat-title">Sentiment Analysis</div>
+                  <div class="feat-desc">
+                    Understand the emotional tone instantly
+                  </div>
+                </div>
+              </div>
+              <div class="feat">
+                <div class="feat-icon feat-orange">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="feat-title">Key Insights</div>
+                  <div class="feat-desc">
+                    Important points extracted automatically
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tech-strip">
+              <span class="tech-tag">Groq LLaMA 3.3</span>
+              <span class="tech-tag">PyMuPDF</span>
+              <span class="tech-tag">Tesseract OCR</span>
+              <span class="tech-tag">Flask API</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loader -->
+      <div id="loader" style="display: none" class="loader-wrap">
+        <div class="loader-card">
+          <div class="loader-visual">
+            <div class="loader-ring r1"></div>
+            <div class="loader-ring r2"></div>
+            <div class="loader-ring r3"></div>
+            <div class="loader-core">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            </div>
+          </div>
+          <div class="loader-text">
+            <div class="loader-title">Analyzing your document</div>
+            <div class="loader-step" id="loaderSub">Reading file contents…</div>
+            <div class="loader-bar-wrap">
+              <div class="loader-bar" id="lcBar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <section id="results" style="display: none" class="results-wrap">
+        <div class="results-topbar">
+          <div>
+            <div class="results-eyebrow">Analysis Complete</div>
+            <div class="results-filename" id="rhFile"></div>
+          </div>
+          <button class="reset-btn" id="resetBtn">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New Analysis
+          </button>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-card" id="statSentiment">
+            <div class="stat-label">Sentiment</div>
+            <div class="stat-value" id="mSentiment">—</div>
+            <div class="stat-bar-line" id="mIndicator"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Entities Detected</div>
+            <div class="stat-value" id="mEntities">—</div>
+            <div class="stat-bar-wrap">
+              <div
+                class="stat-bar-fill"
+                id="mEntitiesBar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Key Points</div>
+            <div class="stat-value" id="mPoints">—</div>
+            <div class="stat-bar-wrap">
+              <div
+                class="stat-bar-fill stat-purple"
+                id="mPointsBar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Results Grid -->
+        <div class="res-grid">
+          <!-- Summary — full width -->
+          <div class="res-card res-full">
+            <div class="res-card-header">
+              <div class="res-card-label">
+                <span class="rcdot blue"></span> Summary
+              </div>
+            </div>
+            <p class="summary-text" id="summaryText"></p>
+          </div>
+
+          <!-- Sentiment -->
+          <div class="res-card">
+            <div class="res-card-header">
+              <div class="res-card-label">
+                <span class="rcdot green"></span> Sentiment
+              </div>
+              <span class="sent-badge" id="sentBadge"></span>
+            </div>
+            <div class="sent-meter">
+              <div class="sent-track">
+                <div class="sent-fill" id="sentFill"></div>
+                <div class="sent-thumb" id="sentThumb"></div>
+              </div>
+              <div class="sent-scale">
+                <span>Negative</span><span>Neutral</span><span>Positive</span>
+              </div>
+            </div>
+            <p class="sent-desc" id="sentDesc"></p>
+          </div>
+
+          <!-- Entities -->
+          <div class="res-card">
+            <div class="res-card-header">
+              <div class="res-card-label">
+                <span class="rcdot purple"></span> Entities
+              </div>
+              <span class="ent-count-badge" id="entCount"></span>
+            </div>
+            <div class="ent-sections" id="entGrid"></div>
+          </div>
+
+          <!-- Key Points -->
+          <div class="res-card res-full" id="kpCard" style="display: none">
+            <div class="res-card-header">
+              <div class="res-card-label">
+                <span class="rcdot orange"></span> Key Points
+              </div>
+            </div>
+            <div class="kp-grid" id="kpList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error -->
+      <div class="error-toast" id="errorBox" style="display: none">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span id="errorText"></span>
+      </div>
+    </main>
+
+    <!-- Custom cursor -->
+    <div id="cursor-main">
+      <svg width="24" height="24" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3.5" id="cur-dot" fill="#4f8ef7" />
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          id="cur-ring"
+          fill="none"
+          stroke="#4f8ef7"
+          stroke-width="1.5"
+          opacity="0.5"
+        />
+      </svg>
     </div>
-    <nav class="sidebar-nav">
-      <a class="nav-item active" href="#">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Analyze
-      </a>
-      <a class="nav-item" href="#">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-        History
-      </a>
-      <a class="nav-item" href="#">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-        Settings
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-avatar">V</div>
-      <div class="user-info">
-        <div class="user-name">Vishnu</div>
-        <div class="user-plan">Free Plan</div>
-      </div>
-    </div>
-  </aside>
+    <canvas id="cursor-trail"></canvas>
 
-  <!-- Main Content -->
-  <main class="main">
-
-    <!-- Top Bar -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1 class="page-title">Document Analysis</h1>
-        <p class="page-sub">Upload a document to extract AI-powered insights</p>
-      </div>
-      <div class="topbar-right">
-        <div class="status-pill">
-          <span class="status-dot"></span>
-          AI Ready
-        </div>
-      </div>
-    </header>
-
-    <!-- Content Grid -->
-    <div class="content-grid" id="uploadSection">
-
-      <!-- Upload Panel -->
-      <div class="panel upload-panel">
-        <div class="panel-header">
-          <span class="panel-title">Upload Document</span>
-          <span class="panel-badge">PDF · DOCX · IMG</span>
-        </div>
-
-        <div class="dropzone" id="uploadBox">
-          <div class="dz-inner">
-            <div class="dz-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </div>
-            <p class="dz-title">Drop your file here</p>
-            <p class="dz-sub">or click to browse from your computer</p>
-            <label class="dz-btn" for="fileInput">Browse Files</label>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.png,.jpg,.jpeg" hidden/>
-          </div>
-          <div class="dz-formats">
-            <span class="fmt-tag">PDF</span>
-            <span class="fmt-tag">DOCX</span>
-            <span class="fmt-tag">PNG</span>
-            <span class="fmt-tag">JPG</span>
-          </div>
-        </div>
-
-        <!-- File Preview -->
-        <div class="file-preview" id="filePreview" style="display:none">
-          <div class="fp-icon" id="fpIcon">📄</div>
-          <div class="fp-info">
-            <div class="fp-name" id="fpName"></div>
-            <div class="fp-size" id="fpSize"></div>
-          </div>
-          <button class="fp-remove" id="fpRemove">✕</button>
-        </div>
-
-        <button class="analyze-btn" id="analyzeBtn" disabled>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Analyze Document
-        </button>
-      </div>
-
-      <!-- Info Panel -->
-      <div class="panel info-panel">
-        <div class="panel-header">
-          <span class="panel-title">What you'll get</span>
-        </div>
-        <div class="feature-list">
-          <div class="feature-item">
-            <div class="fi-icon fi-blue">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            </div>
-            <div class="fi-text">
-              <div class="fi-title">Smart Summary</div>
-              <div class="fi-desc">Concise 3–5 sentence overview of your document</div>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="fi-icon fi-purple">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            </div>
-            <div class="fi-text">
-              <div class="fi-title">Entity Extraction</div>
-              <div class="fi-desc">People, organizations, locations, dates & amounts</div>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="fi-icon fi-green">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            </div>
-            <div class="fi-text">
-              <div class="fi-title">Sentiment Analysis</div>
-              <div class="fi-desc">Positive, negative or neutral tone detection</div>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="fi-icon fi-orange">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/></svg>
-            </div>
-            <div class="fi-text">
-              <div class="fi-title">Key Insights</div>
-              <div class="fi-desc">Important points extracted automatically</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Loader -->
-    <div class="loader-section" id="loader" style="display:none">
-      <div class="loader-card">
-        <div class="lc-left">
-          <div class="lc-spinner"></div>
-        </div>
-        <div class="lc-right">
-          <div class="lc-title">Analyzing your document</div>
-          <div class="lc-sub" id="loaderSub">Reading file contents...</div>
-          <div class="lc-progress">
-            <div class="lc-bar" id="lcBar"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Results Section -->
-    <div class="results-section" id="results" style="display:none">
-
-      <!-- Results Header -->
-      <div class="results-header">
-        <div class="rh-left">
-          <div class="rh-title">Analysis Complete</div>
-          <div class="rh-file" id="rhFile"></div>
-        </div>
-        <button class="new-btn" id="resetBtn">
-          + New Analysis
-        </button>
-      </div>
-
-      <!-- Metrics Row -->
-      <div class="metrics-row">
-        <div class="metric-card">
-          <div class="mc-label">Sentiment</div>
-          <div class="mc-value" id="mSentiment">—</div>
-          <div class="mc-indicator" id="mIndicator"></div>
-        </div>
-        <div class="metric-card">
-          <div class="mc-label">Entities Found</div>
-          <div class="mc-value" id="mEntities">—</div>
-          <div class="mc-bar-wrap"><div class="mc-bar-fill" id="mEntitiesBar"></div></div>
-        </div>
-        <div class="metric-card">
-          <div class="mc-label">Key Points</div>
-          <div class="mc-value" id="mPoints">—</div>
-          <div class="mc-bar-wrap"><div class="mc-bar-fill mc-bar-purple" id="mPointsBar"></div></div>
-        </div>
-      </div>
-
-      <!-- Results Grid -->
-      <div class="results-grid">
-
-        <!-- Summary -->
-        <div class="res-card res-summary">
-          <div class="rc-top">
-            <div class="rc-label">
-              <div class="rc-dot rc-dot-blue"></div>
-              Summary
-            </div>
-          </div>
-          <p class="rc-text" id="summaryText"></p>
-        </div>
-
-        <!-- Sentiment -->
-        <div class="res-card res-sentiment">
-          <div class="rc-top">
-            <div class="rc-label">
-              <div class="rc-dot rc-dot-green"></div>
-              Sentiment
-            </div>
-            <span class="rc-badge" id="sentBadge"></span>
-          </div>
-          <div class="sent-visual" id="sentVisual">
-            <div class="sent-track">
-              <div class="sent-fill" id="sentFill"></div>
-              <div class="sent-thumb" id="sentThumb"></div>
-            </div>
-            <div class="sent-labels">
-              <span>Negative</span>
-              <span>Neutral</span>
-              <span>Positive</span>
-            </div>
-          </div>
-          <p class="sent-desc" id="sentDesc"></p>
-        </div>
-
-        <!-- Entities -->
-        <div class="res-card res-entities">
-          <div class="rc-top">
-            <div class="rc-label">
-              <div class="rc-dot rc-dot-purple"></div>
-              Extracted Entities
-            </div>
-            <span class="rc-count" id="entCount"></span>
-          </div>
-          <div class="ent-grid" id="entGrid"></div>
-        </div>
-
-        <!-- Key Points -->
-        <div class="res-card res-keypoints" id="kpCard" style="display:none">
-          <div class="rc-top">
-            <div class="rc-label">
-              <div class="rc-dot rc-dot-orange"></div>
-              Key Points
-            </div>
-          </div>
-          <div class="kp-list" id="kpList"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Error -->
-    <div class="error-bar" id="errorBox" style="display:none">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="errorText"></span>
-    </div>
-
-  </main>
-
-  <!-- Custom Cursor -->
-<div id="cursor-main">
-  <svg width="28" height="28" viewBox="0 0 28 28">
-    <circle cx="14" cy="14" r="4" id="cur-dot" fill="var(--blue)"/>
-    <circle cx="14" cy="14" r="11" id="cur-ring" fill="none" stroke="var(--blue)" stroke-width="1.5" opacity="0.6"/>
-  </svg>
-</div>
-<canvas id="cursor-trail"></canvas>
-
-  <script src="/static/script.js"></script>
-</body>
+    <script src="/static/script.js"></script>
+  </body>
 </html>
