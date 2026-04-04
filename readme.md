@@ -4,6 +4,7 @@
 
 **Live Demo:** https://doc-analyzer-cbsk.onrender.com  
 **GitHub:** https://github.com/coder-vishnu-176/doc-analyzer
+**API Endpoint:** https://doc-analyzer-cbsk.onrender.com/api/document-analyze
 
 ---
 
@@ -20,23 +21,23 @@
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Python, Flask |
-| AI / LLM | Groq API (Llama 3) |
-| PDF Parsing | PyMuPDF (fitz) |
-| DOCX Parsing | python-docx |
-| Image Processing | Pillow (PIL) |
-| Deployment | Render |
-| Environment | python-dotenv |
+| Layer            | Technology         |
+| ---------------- | ------------------ |
+| Backend          | Python, Flask      |
+| AI / LLM         | Groq API (Llama 3) |
+| PDF Parsing      | PyMuPDF (fitz)     |
+| DOCX Parsing     | python-docx        |
+| Image Processing | Pillow (PIL)       |
+| Deployment       | Render             |
+| Environment      | python-dotenv      |
 
 ---
 
 ## 🤖 AI Tools Used
 
-| Tool | Purpose |
-|------|---------|
-| **Claude (Anthropic)** | Used for coding assistance, debugging, and development support |
+| Tool                   | Purpose                                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| **Claude (Anthropic)** | Used for coding assistance, debugging, and development support                                  |
 | **Groq API (Llama 3)** | Used at runtime for document analysis, summarisation, entity extraction, and sentiment analysis |
 
 > ⚠️ As per the AI Tool Policy, all AI tools used in this project are disclosed above.
@@ -73,6 +74,7 @@ Flask Web App (src/main.py)
 ## ⚙️ Setup Instructions
 
 ### Prerequisites
+
 - Python 3.9+
 - Groq API Key (free at https://console.groq.com)
 
@@ -114,12 +116,14 @@ Visit `http://localhost:5000` in your browser.
 ### POST `/api/document-analyze`
 
 **Headers:**
+
 ```
 x-api-key: sk_track2_987654321
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "fileName": "sample.pdf",
@@ -128,6 +132,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
