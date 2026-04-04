@@ -159,7 +159,7 @@ def analyze():
 
 # ─── Hackathon API Endpoint ───────────────────────────────────────────────────
 
-@app.route("/api/document-analyze", methods=["POST"])
+@app.route("/api/document-analyze", methods=["GET", "POST"])
 def document_analyze():
     """
     Hackathon REST API endpoint.
